@@ -1,2 +1,2 @@
-## Soil Detection web app
-# Google Developers Solution Challenge 2024
+# Soil Detection web app
+## Google Developers Solution Challenge 2024
