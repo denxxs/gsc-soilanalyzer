@@ -1,16 +1,43 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import pickle
 
 # Set the page configuration to wide layout
 st.set_page_config(layout="wide")
 
+
+# Making crop recommendation
+def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
+
+    # Load the model from the .pkl file
+    with open('RandomForest.pkl', 'rb') as file:
+        model = pickle.load(file)
+
+    soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
+    # Get probabilities for each class
+    probabilities = model.predict_proba(soil_dataValue)
+
+    # Get the indices of the classes sorted by probability in descending order
+    top_5_indices = np.argsort(probabilities, axis=1)[:, ::-1][:, :5]
+
+    # Get the corresponding class names for the top 5 indices
+    top_5_crops = model.classes_[top_5_indices]
+
+    # return the top 5 crop predictions
+    return top_5_crops
+
+
 # Define initial soil data
 soil_data = {
-    'location': ['Chennai'],
+    'N': [2],
+    'P': [2],
+    'K': [2],
+    'Temperature (°C)': [22.0],
+    'Humidity': [30.0],
     'pH Level': [6.5],
-    'Humidity (%)': [30],
-    'Temperature (°C)': [22],
+    'rainfall(mm)': [2.9],
+    'location': ['Chennai']
 }
 soil_df = pd.DataFrame(soil_data)
 
@@ -62,6 +89,7 @@ with col2:
     st.header("List of crops you can grow in this soil")
     # Placeholder for the list of crops
     st.write("Possible Crops to Grow:")
+    print('possible', possible_crops)
     for crop in possible_crops:
         st.write(f"- {crop}")  # Display crops as bullet points
 
@@ -80,32 +108,64 @@ with col3:
 st.header("Editable Soil Data")
 
 # Columns for the soil data
-location, ph_level, humidity, temperature = st.columns(4)
+location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
 
+# N level
+with Ni:
+    new_Ni = st.number_input("N", value=soil_df.loc[0, 'N'])
+
+# P level
+with Pho:
+    new_Pho = st.number_input("P", value=soil_df.loc[0, 'P'])
+
+# K level
+with Ki:
+    new_Ki = st.number_input("K", value=soil_df.loc[0, 'K'])
+
+# rainfall level
+with rainfall:
+    new_rainfall = st.number_input("rainfall(mm)", value=soil_df.loc[0, 'rainfall(mm)'])
+    
 # pH Level
 with ph_level:
     new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
 
 # Humidity
 with humidity:
-    new_humidity = st.number_input("Humidity (%)", value=soil_df.loc[0, 'Humidity (%)'])
+    new_humidity = st.number_input("Humidity", value=soil_df.loc[0, 'Humidity'])
 
 # Temperature
 with temperature:
     new_temperature = st.number_input("Temperature (°C)", value=soil_df.loc[0, 'Temperature (°C)'])
 
+# location
 with location:
     new_location = st.text_input("Location Name", value=soil_df.loc[0, 'location'])
 
 # Update the DataFrame with new values
-soil_df.loc[0, 'pH Level'] = new_ph_level
-soil_df.loc[0, 'Humidity (%)'] = new_humidity
+soil_df.loc[0, 'N'] = new_Ni
+soil_df.loc[0, 'P'] = new_Pho
+soil_df.loc[0, 'K'] = new_Ki
 soil_df.loc[0, 'Temperature (°C)'] = new_temperature
+soil_df.loc[0, 'Humidity'] = new_humidity
+soil_df.loc[0, 'pH Level'] = new_ph_level
+soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
 soil_df.loc[0, 'location'] = new_location
 
 # Display the updated DataFrame
 st.write(" Soil Data:")
 st.write(soil_df)
+
+# Add a button to make predictions
+if st.button('Predict Best Crops'):
+    top_crops = predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall)
+    st.write("Top 5 Crop Recommendations:")
+    print('top', top_crops)
+    for crop in top_crops:
+        st.write(crop)  # Display crops as bullet points
+
+
+
 
 
 # Ensure the placeholders are well spaced
