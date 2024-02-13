@@ -162,11 +162,10 @@ with col2:
         with col2:
             st.header("Top 5 Crop Recommendations:")
             # Placeholder for the list of crops
-            st.write("Possible Crops to Grow:")
+            # st.write("Possible Crops to Grow:")
             for crops in top_crops:
                 for crop in crops:
                     st.write(f"- {crop}")  # Display crops as bullet points
-
 
 
 # Ensure the placeholders are well spaced
