@@ -14,7 +14,7 @@ def weather_fetch(city_name):
     response = requests.get(complete_url)
 
     x = response.json()
-    print(x)
+    # print(x)
 
     if x["cod"] != "404":
         y = x["main"]
