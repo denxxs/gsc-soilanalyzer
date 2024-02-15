@@ -12,7 +12,7 @@ st.set_page_config(layout="wide")
 def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
 
     # Load the model from the .pkl file
-    with open('RandomForest.pkl', 'rb') as file:
+    with open('models\RandomForest.pkl', 'rb') as file:
         model = pickle.load(file)
 
     soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
@@ -70,7 +70,7 @@ col1, col2 = st.columns([2, 4])
 with col1:
     st.header("Related Soil Type Image Here")
     # Placeholder for the image
-    st.image("soil.png", use_column_width=True, output_format='auto')  # Replace with your image path
+    st.image("static\soil.png", use_column_width=True, output_format='auto')  # Replace with your image path
 
 # with col1:
 #     st.header("Tabular information and results about the input soil type")

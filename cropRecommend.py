@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report
 
 import pickle
 
-PATH = 'Crop_recommendation.csv'
+PATH = 'data\Crop_recommendation.csv'
 df = pd.read_csv(PATH)
 
 features = df[['N', 'P','K','temperature', 'humidity', 'ph', 'rainfall']]
