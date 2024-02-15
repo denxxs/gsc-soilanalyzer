@@ -1,13 +1,12 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
 import pickle
 
-PATH = 'D:\SolutionChallenge24\gsc-soilanalyzer\Crop_recommendation.csv'
+PATH = 'Crop_recommendation.csv'
 df = pd.read_csv(PATH)
 
 features = df[['N', 'P','K','temperature', 'humidity', 'ph', 'rainfall']]
