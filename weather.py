@@ -22,12 +22,13 @@ def weather_fetch(city_name):
         temperature = round((y["temp"] - 273.15), 2)
         humidity = y["humidity"]
         # rain = x["rain"] # rain if exists it will show up in x -> api json response
-        return temperature, humidity, rain
+        return temperature, humidity
     else:
         return None
     
 
-temp, hum, rain = weather_fetch("Boston")
-print("temp:", temp)
-print("humidity:", hum)
-print("rain:", rain)
+# temp, hum = weather_fetch("Boston")
+# print("temp:", temp)
+# print("humidity:", hum)
+
+# print("rain:", rain)

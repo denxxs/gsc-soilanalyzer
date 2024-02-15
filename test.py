@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
+from weather import weather_fetch
 
 # Set the page configuration to wide layout
 st.set_page_config(layout="wide")
@@ -108,7 +109,8 @@ with col2:
     st.header("Editable Soil Data")
 
     # Columns for the soil data
-    location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
+    # location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
+    location, Ni, Pho, Ki, ph_level, rainfall = st.columns(6)
 
     # N level
     with Ni:
@@ -130,17 +132,19 @@ with col2:
     with ph_level:
         new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
 
-    # Humidity
-    with humidity:
-        new_humidity = st.number_input("Humidity", value=soil_df.loc[0, 'Humidity'])
+    # # Humidity
+    # with humidity:
+    #     new_humidity = st.number_input("Humidity", value=soil_df.loc[0, 'Humidity'])
 
-    # Temperature
-    with temperature:
-        new_temperature = st.number_input("Temperature (°C)", value=soil_df.loc[0, 'Temperature (°C)'])
+    # # Temperature
+    # with temperature:
+    #     new_temperature = st.number_input("Temperature (°C)", value=soil_df.loc[0, 'Temperature (°C)'])
 
     # location
     with location:
         new_location = st.text_input("Location Name", value=soil_df.loc[0, 'location'])
+        # update temp and humidity with weather_fetch
+        new_temperature, new_humidity = weather_fetch(new_location)
 
     # Update the DataFrame with new values
     soil_df.loc[0, 'N'] = new_Ni
