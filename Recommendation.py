@@ -2,11 +2,11 @@ import pickle
 import numpy as np
 
 # Load the model from the .pkl file
-with open('RandomForest.pkl', 'rb') as file:
+with open('models\RandomForest.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Example input data
-data = np.array([[83, 45, 60, 28, 70.3, 7.0, 150.9]])
+data = np.array([[104,18, 30, 23.603016, 60.3, 6.7, 140.91]])
 
 # Make predictions using the loaded model
 predicted_values = model.predict(data)
@@ -16,7 +16,7 @@ print(predicted_values)
 
 
 # Your data input for prediction
-data = np.array([[83, 45, 60, 28, 70.3, 7.0, 150.9]])
+data = np.array([[104,18, 30, 23.603016, 60.3, 6.7, 140.91]])
 
 # Get probabilities for each class
 probabilities = model.predict_proba(data)
