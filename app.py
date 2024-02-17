@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import pickle
 from weather import weather_fetch
+import os
+
+port = int(os.environ.get("PORT", 8080))
+
 
 # Set the page configuration to wide layout
 st.set_page_config(layout="wide")
