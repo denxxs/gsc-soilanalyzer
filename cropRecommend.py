@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report
 
 import pickle
 
-PATH = 'data\Crop_recommendation.csv'
+PATH = 'data/Crop_recommendation.csv'
 df = pd.read_csv(PATH)
 
 features = df[['N', 'P','K','temperature', 'humidity', 'ph', 'rainfall']]
@@ -27,7 +27,7 @@ predicted_values = RF.predict(Xtest)
 # print(classification_report(Ytest,predicted_values))
 
 # save trained RandomForest
-RF_pkl_filename = 'models\RandomForest.pkl'
+RF_pkl_filename = 'models/RandomForest.pkl'
 # Open the file to save as pkl file
 RF_Model_pkl = open(RF_pkl_filename, 'wb')
 pickle.dump(RF, RF_Model_pkl)

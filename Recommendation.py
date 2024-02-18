@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 
 # Load the model from the .pkl file
-with open('models\RandomForest.pkl', 'rb') as file:
+with open('models/RandomForest.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Example input data
