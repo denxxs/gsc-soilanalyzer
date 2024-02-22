@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from weather import weather_fetch
+from streamlit_geolocation import streamlit_geolocation
 import os
 
 
@@ -40,7 +41,8 @@ soil_data = {
     'Humidity': [70.3],
     'pH Level': [7.0],
     'rainfall(mm)': [150.9],
-    'location': ['Chennai']
+    'lat' : [0],
+    'long' : [0]
 }
 soil_df = pd.DataFrame(soil_data)
 
@@ -112,7 +114,7 @@ with col2:
 
     # Columns for the soil data
     # location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
-    location, Ni, Pho, Ki, ph_level, rainfall = st.columns(6)
+    cord, Ni, Pho, Ki, ph_level, rainfall = st.columns(6)
 
     # N level
     with Ni:
@@ -143,10 +145,23 @@ with col2:
     #     new_temperature = st.number_input("Temperature (°C)", value=soil_df.loc[0, 'Temperature (°C)'])
 
     # location
-    with location:
-        new_location = st.text_input("Location Name", value=soil_df.loc[0, 'location'])
-        # update temp and humidity with weather_fetch
-        new_temperature, new_humidity = weather_fetch(new_location)
+    # with location:
+    #     new_location = st.text_input("Location Name", value=soil_df.loc[0, 'location'])
+    #     # update temp and humidity with weather_fetch
+    #     new_temperature, new_humidity = weather_fetch(new_location)
+
+    with cord :
+        new_lat = 0.0
+        new_lon = 0.0
+        location = streamlit_geolocation()
+        if location['latitude'] and location['longitude']:
+            new_temperature, new_humidity = weather_fetch(location['latitude'], location['longitude'])
+        else:
+            new_temperature, new_humidity = weather_fetch(new_lat, new_lon)
+        new_lat = location['latitude']
+        new_lon = location['longitude']
+
+        
 
     # Update the DataFrame with new values
     soil_df.loc[0, 'N'] = new_Ni
@@ -156,7 +171,9 @@ with col2:
     soil_df.loc[0, 'Humidity'] = new_humidity
     soil_df.loc[0, 'pH Level'] = new_ph_level
     soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
-    soil_df.loc[0, 'location'] = new_location
+    soil_df.loc[0, 'lat'] = new_lat
+    soil_df.loc[0, 'long'] = new_lon
+
 
     # Display the updated DataFrame
     st.write(" Soil Data:")
