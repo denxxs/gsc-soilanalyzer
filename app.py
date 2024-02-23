@@ -5,7 +5,9 @@ import pickle
 from weather import weather_fetch
 from streamlit_geolocation import streamlit_geolocation
 import os
-
+from reverse_location import get_city_name
+from test_visualcrossing import get_weather
+from datetime import datetime # for testing ig -- get current time
 
 # Set the page configuration to wide layout
 st.set_page_config(layout="wide")
@@ -41,6 +43,7 @@ soil_data = {
     'Humidity': [70.3],
     'pH Level': [7.0],
     'rainfall(mm)': [150.9],
+    'place' : ['Chennai'],
     'lat' : [0],
     'long' : [0]
 }
@@ -151,15 +154,23 @@ with col2:
     #     new_temperature, new_humidity = weather_fetch(new_location)
 
     with cord :
-        new_lat = 0.0
-        new_lon = 0.0
+        current_time = datetime.now()
+        current_time = str(current_time)
+
+        new_lat = 37.7749
+        new_lon = -122.4194
         location = streamlit_geolocation()
-        if location['latitude'] and location['longitude']:
-            new_temperature, new_humidity = weather_fetch(location['latitude'], location['longitude'])
-        else:
-            new_temperature, new_humidity = weather_fetch(new_lat, new_lon)
         new_lat = location['latitude']
         new_lon = location['longitude']
+        city = get_city_name(new_lat, new_lon)
+        # if location['latitude'] and location['longitude']:
+        #     new_temperature, new_humidity = weather_fetch(location['latitude'], location['longitude'])
+        # else:
+        #     new_temperature, new_humidity = weather_fetch(new_lat, new_lon)
+
+        if city:
+            new_temperature, new_humidity, new_rainfall = get_weather(city, current_time)
+        
 
         
 
@@ -171,6 +182,7 @@ with col2:
     soil_df.loc[0, 'Humidity'] = new_humidity
     soil_df.loc[0, 'pH Level'] = new_ph_level
     soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
+    soil_df.loc[0, 'place'] = city
     soil_df.loc[0, 'lat'] = new_lat
     soil_df.loc[0, 'long'] = new_lon
 
