@@ -52,6 +52,6 @@ def get_weather(city, time):
 
 
 
-# time_string = "2024-02-23 12:50:32.23" # time format example
+time_string = "2024-02-23 07:16:11.159179" # time format example
 
-# print(get_weather("chennai", time_string))
+print(get_weather("chennai", time_string))

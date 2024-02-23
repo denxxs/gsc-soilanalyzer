@@ -163,13 +163,21 @@ with col2:
         new_lat = location['latitude']
         new_lon = location['longitude']
         city = get_city_name(new_lat, new_lon)
+        
         # if location['latitude'] and location['longitude']:
-        #     new_temperature, new_humidity = weather_fetch(location['latitude'], location['longitude'])
+        #     new_temperature, new_humidity = get_weather(city, current_time)
         # else:
-        #     new_temperature, new_humidity = weather_fetch(new_lat, new_lon)
+        #     new_temperature, new_humidity = get_weather(city, "2024-02-23 12:50:32.23")
 
-        if city:
+        try:
             new_temperature, new_humidity, new_rainfall = get_weather(city, current_time)
+        except:
+            st.error("Please click on geolocation button/enable location services.")
+            # Set default values
+            new_temperature = 0.0
+            new_humidity = 0.0
+            new_rainfall = 0.0
+
         
 
         
