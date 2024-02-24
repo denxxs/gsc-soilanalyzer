@@ -4,12 +4,10 @@ import numpy as np
 import pickle
 from streamlit_geolocation import streamlit_geolocation
 import os
-from reverse_location import get_city_name
-from test_visualcrossing import get_weather
 from datetime import datetime # for testing ig -- get current time
 import psycopg2
 from dotenv import load_dotenv
-from use_camera import average_image_color
+from functions import average_image_color, get_city_name, get_weather
 
 # Load .env file
 load_dotenv()
@@ -137,7 +135,7 @@ if st.session_state['logged_in']:
 
     if selected_option == "Get User from Sensor":
         # Code to handle sensor input
-        st.write("Sensor input functionality here.")
+        st.header("Sensor input functionality")
         # Retrieve the most recent NPK values for the logged-in user
         npk_values = get_recent_npk(st.session_state['username'])
         
@@ -202,21 +200,21 @@ if st.session_state['logged_in']:
 
     elif selected_option == "Use Camera":
         # Code to handle camera input
-        st.write("Camera functionality here.")
+        st.write("Camera functionality")
         
         # Upload file button for JPEG files
         uploaded_file = st.file_uploader("Upload a JPEG file", type=["jpeg", "jpg"])
         if uploaded_file is not None:
             # Code to handle the uploaded JPEG file
             st.write("File uploaded successfully.")
-            r, g, b = average_image_color(uploaded_file)
+            k, p, n = average_image_color(uploaded_file)
             
             
             # Define initial soil data with values retrieved from the database
             soil_data = {
-                'N': r,
-                'P': g,
-                'K': b,
+                'N': n,
+                'P': p,
+                'K': k,
                 'Temperature (°C)': [0.0],
                 'Humidity': [0.0],
                 'pH Level': [7.0],  # Default value, adjust as needed
@@ -260,10 +258,11 @@ if st.session_state['logged_in']:
                     new_humidity = 0.0
                     new_rainfall = 0.0
                 
-                soil_datatable(soil_df, r, g, b, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon)
+                soil_datatable(soil_df, n, p, k, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon)
 
 
     elif selected_option == "Upload Manually":
+        st.header('Input values Manually')
        # Define initial soil data with values retrieved from the database
         soil_data = {
             'N': [0.0],
