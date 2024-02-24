@@ -125,9 +125,8 @@ if st.session_state['logged_in']:
         # Code to handle sensor input
         st.header("Sensor input functionality")
 
-        # Replace this with your Google Drive link
+        # Download sensor file link
         link = "https://www.youtube.com/"
-
         st.markdown(f'<a href="{link}" target="_blank">Click here to download sensor files</a>', unsafe_allow_html=True)
 
 
