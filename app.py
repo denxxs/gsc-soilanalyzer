@@ -124,6 +124,13 @@ if st.session_state['logged_in']:
     if selected_option == "Get User from Sensor":
         # Code to handle sensor input
         st.header("Sensor input functionality")
+
+        # Replace this with your Google Drive link
+        link = "https://www.youtube.com/"
+
+        st.markdown(f'<a href="{link}" target="_blank">Click here to download sensor files</a>', unsafe_allow_html=True)
+
+
         # Retrieve the most recent NPK values for the logged-in user
         npk_values = get_recent_npk(st.session_state['username'])
         
