@@ -7,7 +7,7 @@ import os
 from datetime import datetime # for testing ig -- get current time
 import psycopg2
 from dotenv import load_dotenv
-from functions import average_image_color, get_city_name, get_weather
+from functions import average_image_color, get_city_name, get_weather, predict_crop
 
 # Load .env file
 load_dotenv()
@@ -53,18 +53,6 @@ def get_recent_npk(username):
     LIMIT 1;
     """, (username,))
     return cur.fetchone()
-
-# Making crop recommendation
-def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
-    # Load the model from the .pkl file
-    with open('models/RandomForest.pkl', 'rb') as file:
-        model = pickle.load(file)
-
-    soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
-    probabilities = model.predict_proba(soil_dataValue)
-    top_5_indices = np.argsort(probabilities, axis=1)[:, ::-1][:, :5]
-    top_5_crops = model.classes_[top_5_indices]
-    return top_5_crops.flatten()
 
 def soil_datatable(soil_df, new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon):
     # Update the DataFrame with new values

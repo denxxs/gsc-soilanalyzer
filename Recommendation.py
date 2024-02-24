@@ -6,7 +6,7 @@ with open('models/RandomForest.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Example input data
-data = np.array([[104,18, 30, 23.603016, 60.3, 6.7, 140.91]])
+data = np.array([[3, 1, 2, 24, 5, 5, 150]]) # coffee growing example
 
 # Make predictions using the loaded model
 predicted_values = model.predict(data)

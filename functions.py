@@ -3,6 +3,8 @@ import numpy as np
 from geopy.geocoders import Nominatim
 import requests
 import config
+import streamlit as st
+import pickle
 
 def average_image_color(filename):
     '''
@@ -123,3 +125,15 @@ def get_weather(city, time):
 # time_string = "2024-02-23 07:16:11.159179" # time format example
 
 # print(get_weather("chennai", time_string))
+
+# Making crop recommendation
+def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
+    # Load the model from the .pkl file
+    with open('models/RandomForest.pkl', 'rb') as file:
+        model = pickle.load(file)
+
+    soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
+    probabilities = model.predict_proba(soil_dataValue)
+    top_5_indices = np.argsort(probabilities, axis=1)[:, ::-1][:, :5]
+    top_5_crops = model.classes_[top_5_indices]
+    return top_5_crops.flatten()
