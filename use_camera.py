@@ -24,6 +24,6 @@ def average_image_color(filename):
         r, g, b = 0, 0, 0  # or any other default valu1
 
     return r, g, b
-
+# npk values are wrong not color coded with rgb
 # print(average_image_color("D:\Downloads\soil.jpg"))
 
