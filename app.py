@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-from weather import weather_fetch
 from streamlit_geolocation import streamlit_geolocation
 import os
 from reverse_location import get_city_name
@@ -10,6 +9,7 @@ from test_visualcrossing import get_weather
 from datetime import datetime # for testing ig -- get current time
 import psycopg2
 from dotenv import load_dotenv
+from use_camera import average_image_color
 
 # Load .env file
 load_dotenv()
@@ -56,6 +56,50 @@ def get_recent_npk(username):
     """, (username,))
     return cur.fetchone()
 
+# Making crop recommendation
+def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
+    # Load the model from the .pkl file
+    with open('models/RandomForest.pkl', 'rb') as file:
+        model = pickle.load(file)
+
+    soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
+    probabilities = model.predict_proba(soil_dataValue)
+    top_5_indices = np.argsort(probabilities, axis=1)[:, ::-1][:, :5]
+    top_5_crops = model.classes_[top_5_indices]
+    return top_5_crops.flatten()
+
+def soil_datatable(soil_df, new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon):
+    # Update the DataFrame with new values
+    soil_df.loc[0, 'N'] = new_Ni
+    soil_df.loc[0, 'P'] = new_Pho
+    soil_df.loc[0, 'K'] = new_Ki
+    soil_df.loc[0, 'Temperature (°C)'] = new_temperature
+    soil_df.loc[0, 'Humidity'] = new_humidity
+    soil_df.loc[0, 'pH Level'] = new_ph_level
+    soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
+    soil_df.loc[0, 'place'] = city
+    soil_df.loc[0, 'lat'] = new_lat
+    soil_df.loc[0, 'long'] = new_lon
+
+
+    # Display the updated DataFrame
+    st.write(" Soil Data:(NPK values are ratio)")
+    st.write(soil_df)
+
+    # Add a button to make predictions
+    if st.button('Predict Best Crops'):
+        top_crops = predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall)
+        with col2:
+            st.header("Top 5 Crop Recommendations:")
+            # Placeholder for the list of crops
+            # st.write("Possible Crops to Grow:")
+            for crops in top_crops:
+                st.write(f"- {crops}")  # Display crops as bullet points
+
+    # Ensure the placeholders are well spaced
+    st.write("\n" * 5)
+
+
 # Sidebar for Account Creation and Login
 with st.sidebar:
     st.header("Account Management")
@@ -87,96 +131,46 @@ with st.sidebar:
 
 # Main Page Content
 if st.session_state['logged_in']:
-    # Retrieve the most recent NPK values for the logged-in user
-    npk_values = get_recent_npk(st.session_state['username'])
-    
-    # Check if we got the values back from the database
-    if npk_values:
-        nrat, prat, krat, tem, mois = npk_values
-    else:
-        st.error("Could not retrieve soil data for the user.")
-        nrat, prat, krat, tem, mois = 83, 45, 60, 28, 70  # Default values in case of error
+    # Menu bar for user selection
+    menu_options = ["Get User from Sensor", "Use Camera", "Upload Manually"]
+    selected_option = st.selectbox("Choose an option:", menu_options)
 
-    # Define initial soil data with values retrieved from the database
-    soil_data = {
-        'N': [nrat],
-        'P': [prat],
-        'K': [krat],
-        'Temperature (°C)': [tem],
-        'Humidity': [mois],
-        'pH Level': [7.0],  # Default value, adjust as needed
-        'rainfall(mm)': [150.9],  # Default value, adjust as needed
-        'place' : ['Chennai'],
-        'lat': [0],
-        'long': [0]
-    }
-    soil_df = pd.DataFrame(soil_data)
+    if selected_option == "Get User from Sensor":
+        # Code to handle sensor input
+        st.write("Sensor input functionality here.")
+        # Retrieve the most recent NPK values for the logged-in user
+        npk_values = get_recent_npk(st.session_state['username'])
+        
+        # Check if we got the values back from the database
+        if npk_values:
+            nrat, prat, krat, tem, mois = npk_values
+        else:
+            st.error("Could not retrieve soil data for the user.")
+            nrat, prat, krat, tem, mois = 83, 45, 60, 28, 70  # Default values in case of error
+               # Define initial soil data with values retrieved from the database
+        soil_data = {
+            'N': nrat,
+            'P': prat,
+            'K': krat,
+            'Temperature (°C)': [0.0],
+            'Humidity': [0.0],
+            'pH Level': [7.0],  # Default value, adjust as needed
+            'rainfall(mm)': [150.9],  # Default value, adjust as needed
+            'place' : ['Chennai'],
+            'lat': [0.0],
+            'long': [0.0]
+        }
+        
+        soil_df = pd.DataFrame(soil_data)
+        
+        # Columns for the soil type image and the two sections on the right
+        col1, col2 = st.columns([4, 2])
 
-    # Making crop recommendation
-    def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall):
-        # Load the model from the .pkl file
-        with open('models/RandomForest.pkl', 'rb') as file:
-            model = pickle.load(file)
-
-        soil_dataValue = np.array([[new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall]])
-        probabilities = model.predict_proba(soil_dataValue)
-        top_5_indices = np.argsort(probabilities, axis=1)[:, ::-1][:, :5]
-        top_5_crops = model.classes_[top_5_indices]
-        return top_5_crops.flatten()
-    
-    # Columns for the soil type image and the two sections on the right
-    col1, col2 = st.columns([2, 4])
-
-    # Soil type image placeholder
-    with col1:
-        st.header("Soil Type")
-        st.image("static/soil.png", use_column_width=True, output_format='auto')  # Replace with your image path
-
-
-    with col2:
-        # Editable Soil Data
-        # Display editable DataFrame using st.columns()
-        st.header("Editable Soil Data")
-
-        # Columns for the soil data
-        # location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
-        cord, Ni, Pho, Ki, ph_level, rainfall = st.columns(6)
-
-        # N level
-        with Ni:
-            new_Ni = st.number_input("N", value=soil_df.loc[0, 'N'])
-
-        # P level
-        with Pho:
-            new_Pho = st.number_input("P", value=soil_df.loc[0, 'P'])
-
-        # K level
-        with Ki:
-            new_Ki = st.number_input("K", value=soil_df.loc[0, 'K'])
-
-        # rainfall level
-        with rainfall:
-            new_rainfall = st.number_input("rainfall(mm)", value=soil_df.loc[0, 'rainfall(mm)'])
-            
-        # pH Level
-        with ph_level:
+        # Soil type image placeholder
+        with col1:
+            # pH Level
             new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
 
-        # # Humidity
-        # with humidity:
-        #     new_humidity = st.number_input("Humidity", value=soil_df.loc[0, 'Humidity'])
-
-        # # Temperature
-        # with temperature:
-        #     new_temperature = st.number_input("Temperature (°C)", value=soil_df.loc[0, 'Temperature (°C)'])
-
-        # location
-        # with location:
-        #     new_location = st.text_input("Location Name", value=soil_df.loc[0, 'location'])
-        #     # update temp and humidity with weather_fetch
-        #     new_temperature, new_humidity = weather_fetch(new_location)
-
-        with cord :
             current_time = datetime.now()
             current_time = str(current_time)
 
@@ -200,37 +194,161 @@ if st.session_state['logged_in']:
                 new_temperature = 0.0
                 new_humidity = 0.0
                 new_rainfall = 0.0
+            tem = (tem + new_temperature) / 2
+            mois = (mois + new_humidity) / 2
 
-        # Update the DataFrame with new values
-        soil_df.loc[0, 'N'] = new_Ni
-        soil_df.loc[0, 'P'] = new_Pho
-        soil_df.loc[0, 'K'] = new_Ki
-        soil_df.loc[0, 'Temperature (°C)'] = new_temperature
-        soil_df.loc[0, 'Humidity'] = new_humidity
-        soil_df.loc[0, 'pH Level'] = new_ph_level
-        soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
-        soil_df.loc[0, 'place'] = city
-        soil_df.loc[0, 'lat'] = new_lat
-        soil_df.loc[0, 'long'] = new_lon
+            soil_datatable(soil_df, nrat, prat, krat, tem, mois, new_ph_level, new_rainfall, city, new_lat, new_lon)
 
 
-        # Display the updated DataFrame
-        st.write(" Soil Data:")
-        st.write(soil_df)
+    elif selected_option == "Use Camera":
+        # Code to handle camera input
+        st.write("Camera functionality here.")
+        
+        # Upload file button for JPEG files
+        uploaded_file = st.file_uploader("Upload a JPEG file", type=["jpeg", "jpg"])
+        if uploaded_file is not None:
+            # Code to handle the uploaded JPEG file
+            st.write("File uploaded successfully.")
+            r, g, b = average_image_color(uploaded_file)
+            
+            
+            # Define initial soil data with values retrieved from the database
+            soil_data = {
+                'N': r,
+                'P': g,
+                'K': b,
+                'Temperature (°C)': [0.0],
+                'Humidity': [0.0],
+                'pH Level': [7.0],  # Default value, adjust as needed
+                'rainfall(mm)': [150.9],  # Default value, adjust as needed
+                'place' : ['Chennai'],
+                'lat': [0.0],
+                'long': [0.0]
+            }
+            
+            soil_df = pd.DataFrame(soil_data)
+            
+            # Columns for the soil type image and the two sections on the right
+            col1, col2 = st.columns([4, 2])
 
-        # Add a button to make predictions
-        if st.button('Predict Best Crops'):
-            top_crops = predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall)
-            with col2:
-                st.header("Top 5 Crop Recommendations:")
-                # Placeholder for the list of crops
-                # st.write("Possible Crops to Grow:")
-                for crops in top_crops:
-                    for crop in crops:
-                        st.write(f"- {crop}")  # Display crops as bullet points
+            # Soil type image placeholder
+            with col1:
+                # pH Level
+                new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
 
-        # Ensure the placeholders are well spaced
-        st.write("\n" * 5)
+                current_time = datetime.now()
+                current_time = str(current_time)
+
+                new_lat = 37.7749
+                new_lon = -122.4194
+                location = streamlit_geolocation()
+                new_lat = location['latitude']
+                new_lon = location['longitude']
+                city = get_city_name(new_lat, new_lon)
+                
+                # if location['latitude'] and location['longitude']:
+                #     new_temperature, new_humidity = get_weather(city, current_time)
+                # else:
+                #     new_temperature, new_humidity = get_weather(city, "2024-02-23 12:50:32.23")
+
+                try:
+                    new_temperature, new_humidity, new_rainfall = get_weather(city, current_time)
+                except:
+                    st.error("Please click on geolocation button/enable location services.")
+                    # Set default values
+                    new_temperature = 0.0
+                    new_humidity = 0.0
+                    new_rainfall = 0.0
+                
+                soil_datatable(soil_df, r, g, b, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon)
+
+
+    elif selected_option == "Upload Manually":
+       # Define initial soil data with values retrieved from the database
+        soil_data = {
+            'N': [0.0],
+            'P': [0.0],
+            'K': [0.0],
+            'Temperature (°C)': [0.0],
+            'Humidity': [0.0],
+            'pH Level': [7.0],  # Default value, adjust as needed
+            'rainfall(mm)': [150.9],  # Default value, adjust as needed
+            'place' : ['Chennai'],
+            'lat': [0.0],
+            'long': [0.0]
+        }
+        
+        soil_df = pd.DataFrame(soil_data)
+        
+        # Columns for the soil type image and the two sections on the right
+        col1, col2 = st.columns([4, 2])
+
+        # Soil type image placeholder
+        with col1:
+            # Editable Soil Data
+            # Display editable DataFrame using st.columns()
+            st.header("Editable Soil Data")
+
+            # Columns for the soil data
+            # location, Ni, Pho, Ki, temperature, humidity, ph_level, rainfall = st.columns(8)
+            cord, Ni, Pho, Ki, ph_level = st.columns(5)
+
+            # N level
+            with Ni:
+                new_Ni = st.number_input("N", value=soil_df.loc[0, 'N'])
+
+            # P level
+            with Pho:
+                new_Pho = st.number_input("P", value=soil_df.loc[0, 'P'])
+
+            # K level
+            with Ki:
+               new_Ki = st.number_input("K", value=soil_df.loc[0, 'K'])
+               
+            # pH Level
+            with ph_level:
+                new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
+
+            with cord :
+                current_time = datetime.now()
+                current_time = str(current_time)
+
+                new_lat = 37.7749
+                new_lon = -122.4194
+                location = streamlit_geolocation()
+                new_lat = location['latitude']
+                new_lon = location['longitude']
+                city = get_city_name(new_lat, new_lon)
+                
+                # if location['latitude'] and location['longitude']:
+                #     new_temperature, new_humidity = get_weather(city, current_time)
+                # else:
+                #     new_temperature, new_humidity = get_weather(city, "2024-02-23 12:50:32.23")
+
+                try:
+                    new_temperature, new_humidity, new_rainfall = get_weather(city, current_time)
+                except:
+                    st.error("Please click on geolocation button/enable location services.")
+                    # Set default values
+                    new_temperature = 0.0
+                    new_humidity = 0.0
+                    new_rainfall = 0.0
+
+            total_sum = new_Ni + new_Pho + new_Ki
+            # Check if the total_sum is not zero to avoid division by zero
+            if total_sum != 0:
+                r = (new_Ni / total_sum) * 6
+                g = (new_Pho / total_sum) * 6
+                b = (new_Ki / total_sum) * 6
+            else:
+                # Handle the case where total_sum is zero
+                r, g, b = 0, 0, 0  # or any other default valu1
+                
+            soil_datatable(soil_df, r, g, b, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon)
+
+        # with col2:
+        #     st.header("Soil Type")
+        #     st.image("static/soil.png", use_column_width=True, output_format='auto')  # Replace with your image path
 
 
 # Ways to improve soil fertility placeholder
