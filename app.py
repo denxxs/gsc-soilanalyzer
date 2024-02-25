@@ -435,7 +435,7 @@ if st.session_state['logged_in']:
                 elif role == "model":
                     st.chat_message("assistant").markdown(parts[0])
 
-        chat_message = st.chat_input("Say something")
+        chat_message = st.chat_input("Please tell your NPK values, temperature(C deg), humidity, ph, rainfall(mm) and/or ask something")
 
         if chat_message:
             st.chat_message("user").markdown(chat_message)
@@ -460,8 +460,7 @@ if st.session_state['logged_in']:
                 res_text += chunk.text
                 res_area.markdown(res_text)
 
-            if select_model != "gemini-pro-vision":
-                messages.append({"role": "model", "parts": [res_text]})
+            messages.append({"role": "model", "parts": [res_text]})
 
 
 
