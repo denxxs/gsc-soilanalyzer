@@ -8,11 +8,15 @@ def chatbot():
     with st.sidebar:
         st.title("Gemini API")
         
-        if "api_key" in st.secrets:
-            genai.configure(api_key=st.secrets["api_key"])
+        api_key = st.text_input("API key")
+        if api_key:
+            genai.configure(api_key=api_key)
         else:
-            st.error("Missing API key.")
-
+            if "api_key" in st.secrets:
+                genai.configure(api_key=st.secrets["api_key"])
+            else:
+                st.error("Missing API key.")
+        
         select_model = st.selectbox("Select model", ["gemini-pro", "gemini-pro-vision"])
         if select_model == "gemini-pro-vision":
             uploaded_image = st.file_uploader(
@@ -73,3 +77,4 @@ def chatbot():
 
         if select_model != "gemini-pro-vision":
             messages.append({"role": "model", "parts": [res_text]})
+
