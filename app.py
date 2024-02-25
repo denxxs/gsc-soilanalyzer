@@ -397,15 +397,10 @@ if st.session_state['logged_in']:
     if st.session_state['show_chatbot']:
         with st.sidebar:
             st.title("Gemini API")
-            
-            api_key = st.text_input("API key")
-            if api_key:
-                genai.configure(api_key=api_key)
+            if "api_key" in st.secrets:
+                genai.configure(api_key=st.secrets["api_key"])
             else:
-                if "api_key" in st.secrets:
-                    genai.configure(api_key=st.secrets["api_key"])
-                else:
-                    st.error("Missing API key.")
+                st.error("Missing API key.")
             
             select_model = st.selectbox("Select model", ["gemini-pro", "gemini-pro-vision"])
             if select_model == "gemini-pro-vision":
