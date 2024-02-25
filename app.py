@@ -8,6 +8,8 @@ from datetime import datetime # for testing ig -- get current time
 import psycopg2
 from dotenv import load_dotenv
 from functions import average_image_color, get_city_name, get_weather
+from chattester import chatbot
+
 
 # Load .env file
 load_dotenv()
@@ -27,6 +29,14 @@ st.set_page_config(layout="wide")
 # Initialize session state for user login status
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
+
+# initialize session state for recommendation and chatbot page status
+if 'show_recommendation' not in st.session_state:
+    st.session_state['show_recommendation'] = False
+if 'show_chatbot' not in st.session_state:
+    st.session_state['show_chatbot'] = False
+
+
 
 # Function to check if user exists in the database
 def user_exists(username):
@@ -66,69 +76,40 @@ def predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_
     top_5_crops = model.classes_[top_5_indices]
     return top_5_crops.flatten()
 
-def soil_datatable(soil_df, new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon):
-    # Update the DataFrame with new values
-    soil_df.loc[0, 'N'] = new_Ni
-    soil_df.loc[0, 'P'] = new_Pho
-    soil_df.loc[0, 'K'] = new_Ki
-    soil_df.loc[0, 'Temperature (°C)'] = new_temperature
-    soil_df.loc[0, 'Humidity'] = new_humidity
-    soil_df.loc[0, 'pH Level'] = new_ph_level
-    soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
-    soil_df.loc[0, 'place'] = city
-    soil_df.loc[0, 'lat'] = new_lat
-    soil_df.loc[0, 'long'] = new_lon
+def recommendation_page():
+    def soil_datatable(soil_df, new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall, city, new_lat, new_lon):
+
+        # Update the DataFrame with new values
+        soil_df.loc[0, 'N'] = new_Ni
+        soil_df.loc[0, 'P'] = new_Pho
+        soil_df.loc[0, 'K'] = new_Ki
+        soil_df.loc[0, 'Temperature (°C)'] = new_temperature
+        soil_df.loc[0, 'Humidity'] = new_humidity
+        soil_df.loc[0, 'pH Level'] = new_ph_level
+        soil_df.loc[0, 'rainfall(mm)'] = new_rainfall
+        soil_df.loc[0, 'place'] = city
+        soil_df.loc[0, 'lat'] = new_lat
+        soil_df.loc[0, 'long'] = new_lon
 
 
-    # Display the updated DataFrame
-    st.write(" Soil Data:(NPK values are ratio)")
-    st.write(soil_df)
+        # Display the updated DataFrame
+        st.write(" Soil Data:(NPK values are ratio)")
+        st.write(soil_df)
 
-    # Add a button to make predictions
-    if st.button('Predict Best Crops'):
-        top_crops = predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall)
-        with col2:
-            st.header("Top 5 Crop Recommendations:")
-            # Placeholder for the list of crops
-            # st.write("Possible Crops to Grow:")
-            for crops in top_crops:
-                st.write(f"- {crops}")  # Display crops as bullet points
+        # Add a button to make predictions
+        if st.button('Predict Best Crops'):
+            top_crops = predict_crop(new_Ni, new_Pho, new_Ki, new_temperature, new_humidity, new_ph_level, new_rainfall)
+            with col2:
+                st.header("Top 5 Crop Recommendations:")
+                # Placeholder for the list of crops
+                # st.write("Possible Crops to Grow:")
+                for crops in top_crops:
+                    st.write(f"- {crops}")  # Display crops as bullet points
 
-    # Ensure the placeholders are well spaced
-    st.write("\n" * 5)
+        return 
+        # Ensure the placeholders are well spaced
+        st.write("\n" * 5)
 
-
-# Sidebar for Account Creation and Login
-with st.sidebar:
-    st.header("Account Management")
-    if not st.session_state['logged_in']:
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button('Create Account'):
-            if user_exists(username):
-                st.error("Username already taken.")
-            else:
-                insert_user(username, password)
-                st.session_state['logged_in'] = True
-                st.session_state['username'] = username
-                st.success("Account Created Successfully!")
-
-        if st.button('Login'):
-            if verify_credentials(username, password):
-                st.session_state['logged_in'] = True
-                st.session_state['username'] = username
-                st.success("Logged in Successfully!")
-            else:
-                st.error("Invalid Credentials")
-    else:
-        st.success(f"You are logged in as {st.session_state['username']}")
-        if st.button('Logout'):
-            st.session_state['logged_in'] = False
-
-
-# Main Page Content
-if st.session_state['logged_in']:
     # Menu bar for user selection
     menu_options = ["Get User from Sensor", "Use Camera", "Upload Manually"]
     selected_option = st.selectbox("Choose an option:", menu_options)
@@ -145,7 +126,7 @@ if st.session_state['logged_in']:
         else:
             st.error("Could not retrieve soil data for the user.")
             nrat, prat, krat, tem, mois = 83, 45, 60, 28, 70  # Default values in case of error
-               # Define initial soil data with values retrieved from the database
+                # Define initial soil data with values retrieved from the database
         soil_data = {
             'N': nrat,
             'P': prat,
@@ -263,7 +244,7 @@ if st.session_state['logged_in']:
 
     elif selected_option == "Upload Manually":
         st.header('Input values Manually')
-       # Define initial soil data with values retrieved from the database
+        # Define initial soil data with values retrieved from the database
         soil_data = {
             'N': [0.0],
             'P': [0.0],
@@ -302,8 +283,8 @@ if st.session_state['logged_in']:
 
             # K level
             with Ki:
-               new_Ki = st.number_input("K", value=soil_df.loc[0, 'K'])
-               
+                new_Ki = st.number_input("K", value=soil_df.loc[0, 'K'])
+                
             # pH Level
             with ph_level:
                 new_ph_level = st.number_input("pH Level", value=soil_df.loc[0, 'pH Level'])
@@ -350,15 +331,62 @@ if st.session_state['logged_in']:
         #     st.image("static/soil.png", use_column_width=True, output_format='auto')  # Replace with your image path
 
 
-# Ways to improve soil fertility placeholder
-# with col3:
-#     st.header("Ways to improve the soil fertility + giving locations to nearby fertility stores")
-#     # Placeholder for the text and possibly a map or list
-#     st.write("Ways to Improve Soil Fertility:")
-#     for points in fertility_improvement_points:
-#         st.write(f"- {points}")  # Replace with your content
+    # Ways to improve soil fertility placeholder
+    # with col3:
+    #     st.header("Ways to improve the soil fertility + giving locations to nearby fertility stores")
+    #     # Placeholder for the text and possibly a map or list
+    #     st.write("Ways to Improve Soil Fertility:")
+    #     for points in fertility_improvement_points:
+    #         st.write(f"- {points}")  # Replace with your content
 
+def chatbot_page():
+    st.header('chatbot')
 
+# Sidebar for Account Creation and Login
+with st.sidebar:
+    st.header("Authentication")
+    if not st.session_state['logged_in']:
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button('Create Account'):
+            if user_exists(username):
+                st.error("Username already taken.")
+            else:
+                insert_user(username, password)
+                st.session_state['logged_in'] = True
+                st.session_state['username'] = username
+                st.success("Account Created Successfully!")
+
+        if st.button('Login'):
+            if verify_credentials(username, password):
+                st.session_state['logged_in'] = True
+                st.session_state['username'] = username
+                st.success("Logged in Successfully!")
+            else:
+                st.error("Invalid Credentials")
+    else:
+        st.success(f"You are logged in as {st.session_state['username']}")
+        if st.button('Logout'):
+            st.session_state['logged_in'] = False
+
+# Main Page Content
+if st.session_state['logged_in']:
+    with st.sidebar:
+        st.subheader("Navigation")
+        # Create a widebar sidebar button
+        if st.button('Crop Recommendation'):
+            st.session_state['show_recommendation'] = True
+            st.session_state['show_chatbot'] = False
+        if st.button('ChatBot - Google Gemini Model'):
+            st.session_state['show_chatbot'] = True
+            st.session_state['show_recommendation'] = False
+
+    
+    if st.session_state['show_recommendation']:
+        recommendation_page()
+    if st.session_state['show_chatbot']:
+        chatbot()
 
 else:
     st.warning("Please create an account or login to access the features.")
