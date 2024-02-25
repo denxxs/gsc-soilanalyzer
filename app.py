@@ -119,8 +119,8 @@ def recommendation_page():
         st.header("Sensor input functionality")
 
         # Download sensor file link
-        link = "https://www.youtube.com/"
-        st.markdown(f'<a href="{link}" target="_blank">Click here to download sensor files</a>', unsafe_allow_html=True)
+        download_link = "https://drive.google.com/drive/folders/1GM1GrLMj5JUj8BozHEr-7A58Kf_XRVdM?usp=sharing"
+        st.markdown(f'<a href="{download_link}" target="_blank">Click here to download sensor files</a>', unsafe_allow_html=True)
 
 
         # Retrieve the most recent NPK values for the logged-in user
