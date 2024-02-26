@@ -24,7 +24,7 @@ git clone https://github.com/denxxs/gsc-soilanalyzer.git
 2. Install required packages:
 pip install -r requirements.txt
 
-3. Download the Client side app: if you are using our sensor raspberrypi4 with tcs3200 and dht11 sensors -- https://github.com/Quantum2511/gsc-client-side-knowURsoil
+3. Optional - Download the Client side app: if you are using our sensor raspberrypi4 with tcs3200 and dht11 sensors -- https://github.com/Quantum2511/gsc-client-side-knowURsoil
 
 
 ### Usage
