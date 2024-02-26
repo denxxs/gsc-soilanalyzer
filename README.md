@@ -1,4 +1,4 @@
-# GSC Soil Analyzer
+# knowURsoil - GSC Soil Analyzer
 
 ## Overview
 
