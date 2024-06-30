@@ -72,5 +72,5 @@ We welcome contributions. Please follow these steps:
 
 - Google Developers Solution Challenge 2024
 - Contributors and maintainers of this project
-- Bhavya Chanana - https://www.linkedin.com/in/bhavya-chanana/ - https://github.com/Quantum2511
+- Bhavya Chanana - https://www.linkedin.com/in/bhavya-chanana/ - https://github.com/bhavya-chanana
 - Dennis Sagayanathan - https://www.linkedin.com/in/d3n/ - https://github.com/denxxs
